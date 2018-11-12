@@ -1,56 +1,61 @@
 # **Finding Lane Lines on the Road** 
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
+The goals / steps of this project are the following:
+* Make a pipeline that finds lane lines on the road
+* Reflect on your work in a written report
 
-Overview
+
+[//]: # (Image References)
+
+[image1]: ./examples/grayscale.jpg "Grayscale"
+
 ---
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+### Reflection
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
+### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
 
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
+My pipeline consisted of the following steps:
 
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+1. Convert to grayscale
+![grayscale](./writeup_images/grayscale.jpg)
+
+_Intermediate step to test the vector mask_
+![mask](./writeup_images/mask.jpg)
+
+2. Apply Gaussian blur
+![blur](./writeup_images/blur.jpg)
+
+3. Canny filter & vector mask
+![canny](./writeup_images/canny.jpg)
+
+4. Hough transform
+![hough](./writeup_images/hough.jpg)
+
+5. Combine the end image
+![combined](./writeup_images/combined_hough.jpg)
+
+I created two pipelines, the standard one which draws lane lines over the image and a `debug_pipeline` to help me find the best Canny, Hough and filtering parameters for the images and videos
+
+### Modifying draw_lines()
+I created two additional function `average_lines()` to average the Hough lines into two lane lines, and `filter_lines()` to filter out Hough lines which aren't lane lines (e.g. erroneous lines from shadows, reflections) based on their gradient. If the gradient of the line is too shallow or too steep, it probably isn't a lane line and it is discarded.
+
+An example image is given below to show the filtering process. The red lines are Hough lines to keep, while the yellow lines are Hough lines to discard (based on their gradient)
+
+![filtering](./test_images_debug/whiteCarLaneSwitch.jpg)
+
+I also implemented a weighted moving average filter in the `average_lines()` function specifically for the videos which helps to smooth out the jitteriness of the lane lines in the videos
 
 
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
+### 2. Identify potential shortcomings with your current pipeline
 
-1. Describe the pipeline
-
-2. Identify any shortcomings
-
-3. Suggest possible improvements
-
-We encourage using images in your writeup to demonstrate how your pipeline works.  
-
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
+Some shortcomings of my pipeline:
+- I tried it on the challenge video, and it did not perform so well. One reason for this is because the texture of the road surface changes, and there are shadows
+- The Canny and Hough parameters are far from ideal and could do with more tuning
 
 
-The Project
----
+### 3. Suggest possible improvements to your pipeline
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+One improvement would be to use a color filter on the image to isolate the yellow and white lines before passing it to the Canny filter.
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://classroom.udacity.com/nanodegrees/nd013/parts/fbf77062-5703-404e-b60c-95b78b2f3f9e/modules/83ec35ee-1e02-48a5-bdb7-d244bd47c2dc/lessons/8c82408b-a217-4d09-b81d-1bda4c6380ef/concepts/4f1870e0-3849-43e4-b670-12e6f2d4b7a7) if you haven't already.
-
-**Step 2:** Open the code in a Jupyter Notebook
-
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out [Udacity's free course on Anaconda and Jupyter Notebooks](https://classroom.udacity.com/courses/ud1111) to get started.
-
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
-
-`> jupyter notebook`
-
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
-
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
+Another one would be to fine-tune the Canny and Hough parameters (but this was boring and I didn't want to spend too much time on optimization)
